@@ -11,8 +11,9 @@
         </template>
       </n-switch>
       <div v-html="notice"></div>
+       
     </n-card>
-
+<div v-if="user" class="notice"> 用户：{{user}} &nbsp; &nbsp;  到期时间：{{deadLine}} </div>
     <n-grid x-gap="10" y-gap="10" cols="2 s:3 m:4 l:5 xl:5 2xl:6" responsive="screen">
       <n-grid-item class="cardclss" v-for="item in itemslist" :key="item.carID">
 
@@ -89,6 +90,7 @@
 
 .boxclass:hover {
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  cursor:pointer;
 }
 
 .pluscolor:hover {
@@ -124,6 +126,15 @@
 .arco-progress-steps-item {
   border-radius: 30px !important;
 }
+
+
+.notice{
+  background-color: rgb(187 201 217 / 20%);
+  border: 1px solid transparent;
+  padding: 8px;
+  text-align: center;
+  border-radius: 2px !important;
+}
 </style>
 
 
@@ -132,7 +143,7 @@ import axios from 'axios';
 import {darkTheme} from 'naive-ui'
 import type {GlobalTheme} from 'naive-ui'
 import {Sparkles, SunnySharp} from '@vicons/ionicons5'
-
+import qs from "qs";
 
 export default defineComponent({
   data() {
@@ -143,7 +154,9 @@ export default defineComponent({
       total: 0,
       page: 1,
       isLoading: false,
-      hasMoreData: true
+      hasMoreData: true,
+      deadLine:"",
+      user:""
     };
   },
   computed: {
@@ -210,6 +223,27 @@ export default defineComponent({
     fetchData: async function () {
       if (!this.hasMoreData || this.isLoading) return;
       this.isLoading = true; // 开始加载，设置为true
+     axios.get('/api/auth/session').then((userdata)=>{
+      
+      if(!userdata.data?.accessToken) return;
+       axios({
+        method:"post",
+        url:"/aixian/v1/user",
+        params:'',     
+        data:{
+            userToken: userdata.data?.accessToken
+         }
+      } ).then((res)=>{
+        this.deadLine = res.data.expireTime.replace('T',' ')
+        this.user = res.data.userToken
+      })
+     })
+      
+
+
+       
+
+
       axios.post('/carpage', {
         page: this.page,
         size: 50
